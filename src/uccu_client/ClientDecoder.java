@@ -147,7 +147,7 @@ public class ClientDecoder implements Decoder {
 				break;
 			}
 			case 0x0016:{ //时间同步
-				GameBox.globalTime = datagram.getLong();
+				GameBox.globalTimeDelta = System.currentTimeMillis()-datagram.getLong();
 				UccuLogger.log("ClientServer/ClientDecoder", "Receive a package 0016(时间同步)");
 				break;
 			}

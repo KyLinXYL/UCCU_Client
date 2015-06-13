@@ -17,8 +17,8 @@ public class GameBox{
 	public ArrayList<Warhead> warheadPool;
 	//本人信息，应该比其他玩家的信息更丰富
 	public Mainrole mainrole;
-	//服务器绝对时间
-	static public long globalTime;
+	//与服务器绝对时间的差
+	static public long globalTimeDelta=0;
 	//更改playerPool和warheadPool的锁
 	private static Object lock_plane = new Object(); // static确保只有一把锁
 	private static Object lock_bullet = new Object(); // static确保只有一把锁
@@ -57,7 +57,7 @@ public class GameBox{
 		synchronized (lock_plane) {
 			Airplane pl = playerPool.get(id);
 			/* magic dont move!!! */
-			int dt=(int)(System.currentTimeMillis()-globalTime);
+			int dt=(int)(System.currentTimeMillis()-globalTimeDelta-globalTime);
 			int deltaX = targetX - (int)pl.posX;
 			int deltaY = targetY - (int)pl.posY;
 			double dL = Math.sqrt(deltaX*deltaX+deltaY*deltaY);
@@ -75,7 +75,7 @@ public class GameBox{
 		}
 	}
 	public void sendTargetPos(int targetX,int targetY){
-		updateTarget(ClientMain.mainID,targetX, targetY,System.currentTimeMillis());//先更新目标地址，再发送数据包
+		updateTarget(ClientMain.mainID,targetX, targetY,System.currentTimeMillis()-globalTimeDelta);//先更新目标地址，再发送数据包
 		SendingModule.sendMovingTarget(mainrole.getID(), (int)mainrole.targetX, (int)mainrole.targetY);
 		}
 	//将角色初始化,加入角色池并放入贴图池
