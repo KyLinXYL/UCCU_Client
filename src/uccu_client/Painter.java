@@ -259,7 +259,7 @@ public class Painter extends JFrame{
 		new Thread(){
 			public void run(){
 				while(true){
-					try {Thread.sleep(17);} catch (InterruptedException e) {}
+					try {Thread.sleep(20);} catch (InterruptedException e) {}
 					flashImg();
 				}
 			}

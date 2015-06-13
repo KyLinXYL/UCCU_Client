@@ -120,12 +120,16 @@ public class GameBox{
 						/* 我修改了你的移动方法 不然deltaX很小或者deltaY是负数时会出错
 						 * 这里采用总速度不变，横纵速度按比例变化的方法 最后如果delta比速度的步长短时，只移动delta*/
 						double dL = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-						if(dL == 0) continue;
+//						if(dL <= plane.speed/2) {
+//							plane.posX += deltaX;
+//							plane.posY += deltaY;
+//							continue;
+//						}
 						double dt = plane.deltaTime;
 						double modspeed = plane.speed;
-						modspeed = (1+dt/(sleeptime*dL/modspeed - dt))*modspeed;
-						double tmp = modspeed / dL;
-						if (tmp > 1)
+//						modspeed = modspeed*sleeptime*dL/(sleeptime*dL-dt*modspeed);
+						double tmp = modspeed*sleeptime/(sleeptime*dL-dt*modspeed);
+						if (tmp > 1||tmp < 0)
 							tmp = 1;// 比例大于1说明步长大于delta，将比例修改为1，否则会不能停止移动，反复在原地抖动
 						// speed 是其x轴速度,deltaXY只是用来算角度的
 						plane.posX += deltaX * tmp;
