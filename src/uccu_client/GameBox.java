@@ -10,6 +10,7 @@ import java.util.Iterator;
 import java.util.Vector;
 
 public class GameBox{
+	final int sleeptime = 20;
 	//实体池，应为一个HashMap，以ID为索引，实体对象为元素
 	public HashMap<Integer, Airplane> playerPool;
 	//炮弹池，为一个List
@@ -52,10 +53,21 @@ public class GameBox{
 		new Thread(new ActionThread_bullet(this)).start();
 	}
 	//由decoder调用,更新各个角色的目标位置
-	public void updateTarget(int id, int targetX, int targetY) {
+	public void updateTarget(int id, int targetX, int targetY,long globalTime) {
 		synchronized (lock_plane) {
-			(playerPool.get(id)).targetX = targetX;
-			(playerPool.get(id)).targetY = targetY;
+			Airplane pl = playerPool.get(id);
+			/* magic dont move!!! */
+			int dt=(int)(System.currentTimeMillis()-globalTime);
+			int deltaX = targetX - (int)pl.posX;
+			int deltaY = targetY - (int)pl.posY;
+			double dL = Math.sqrt(deltaX*deltaX+deltaY*deltaY);
+			double speed = pl.speed;
+			double tmpspeed = speed*sleeptime*dL/(sleeptime*dL-dt*speed);
+			if(tmpspeed <= 0) tmpspeed = speed;
+			pl.deltaV = tmpspeed;
+			/* dont move!! */
+			pl.targetX = targetX;
+			pl.targetY = targetY;
 			UccuLogger.log("Client/GameBox/updateTarget",
 					"receive Package 000C(角色目标)");
 			UccuLogger.log("Client/GameBox/updateTarget", "targetX: " + targetX
@@ -63,7 +75,7 @@ public class GameBox{
 		}
 	}
 	public void sendTargetPos(int targetX,int targetY){
-		updateTarget(ClientMain.mainID,targetX, targetY);//先更新目标地址，再发送数据包
+		updateTarget(ClientMain.mainID,targetX, targetY,System.currentTimeMillis());//先更新目标地址，再发送数据包
 		SendingModule.sendMovingTarget(mainrole.getID(), (int)mainrole.targetX, (int)mainrole.targetY);
 		}
 	//将角色初始化,加入角色池并放入贴图池
@@ -81,7 +93,6 @@ public class GameBox{
 			painter.addEntity(tmpMain);
 			painter.setMainRole(tmpMain);
 			mainrole=tmpMain;
-			mainrole.deltaTime = 50;
 			for(int i=0;i<32;++i)
 				mainrole.add_items(0, 5,0);
 			UccuLogger.debug("ClientServer/GameBox/addCharacter", "000A:加入一个主角玩家:"+name);
@@ -119,17 +130,8 @@ public class GameBox{
 							plane.angle = Math.PI / 2 + Math.PI * face+ (Math.atan(deltaY / deltaX));
 						/* 我修改了你的移动方法 不然deltaX很小或者deltaY是负数时会出错
 						 * 这里采用总速度不变，横纵速度按比例变化的方法 最后如果delta比速度的步长短时，只移动delta*/
-						double dL = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-//						if(dL <= plane.speed/2) {
-//							plane.posX += deltaX;
-//							plane.posY += deltaY;
-//							continue;
-//						}
-						double dt = plane.deltaTime;
-						double modspeed = plane.speed;
-//						modspeed = modspeed*sleeptime*dL/(sleeptime*dL-dt*modspeed);
-						double tmp = modspeed*sleeptime/(sleeptime*dL-dt*modspeed);
-						if (tmp > 1||tmp < 0)
+						double tmp = plane.deltaV/Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+						if (tmp > 1)
 							tmp = 1;// 比例大于1说明步长大于delta，将比例修改为1，否则会不能停止移动，反复在原地抖动
 						// speed 是其x轴速度,deltaXY只是用来算角度的
 						plane.posX += deltaX * tmp;

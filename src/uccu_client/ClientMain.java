@@ -116,7 +116,7 @@ public class ClientMain {
 	private static void myDebug(int num){
 		if (deBug) {
 			if (num == 1) {
-//				mySleep(1000);
+//				mySleep(500);
 				loginBox.serverState((byte) 1);// 假装连接成功，服务器处于空闲状态
 			}
 			else if (num == 2) {
@@ -146,7 +146,7 @@ public class ClientMain {
 			}
 			else if(num==3){//模拟移动情况
 //				gameBox.updateTarget(3, 2000, 5000);
-				gameBox.updateTarget(5, 10000, 20000);
+				gameBox.updateTarget(5, 10000, 20000,System.currentTimeMillis());
 			}
 			else if(num==4){	//模拟各种聊天请求
 				mySleep(500);

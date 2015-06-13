@@ -81,9 +81,10 @@ public class ClientDecoder implements Decoder {
 				int id=datagram.getInt();
 				int targetX=datagram.getInt();
 				int targetY=datagram.getInt();
+				long globalTime= datagram.getLong();
 				UccuLogger.log("ClientServer/ClientDecoder", "Receive a package 000C(所有玩家目标坐标更新)");
 				UccuLogger.log("ClientServer/ClientDecoder", "package 000C: "+"/id: "+id+"/posX: "+targetX+"/posY: "+targetY);
-				gameBox.updateTarget(id, targetX, targetY);
+				gameBox.updateTarget(id, targetX, targetY,globalTime);
 				break;
 			}
 			case 0x000E:{	//全局喇叭被服务器拒绝
@@ -188,6 +189,19 @@ public class ClientDecoder implements Decoder {
 //						这是物品
 					}
 				}
+			}
+			case 0x001C:{//角色详细信息的重新更新
+				int id=datagram.getInt();
+				String name=Datagram.extractString(datagram);
+				byte level=datagram.get();
+				byte gender=datagram.get();
+				byte pid = 12;	//picid 并没有告诉Client---多图情况下需要知道角色是哪款飞机
+				int posX=datagram.getInt();
+				int posY=datagram.getInt();
+				UccuLogger.log("ClientServer/ClientDecoder", "Receive a package 000A(游戏中所有玩家信息)");
+				UccuLogger.log("ClientServer/ClientDecoder", "package 000A: "+"/id: "+id+"/name: "+name+"/level: "+level+"/gender: "+gender+"/posX: "+posX+"/posY: "+posY);
+				gameBox.addCharacter(id, name, pid, level, gender, posX, posY);
+				break;
 			}
 			
 	    	}
